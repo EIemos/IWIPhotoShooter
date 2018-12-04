@@ -31,7 +31,6 @@ public class GameController : MonoBehaviour {
             {
                 Vector2 clickedPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 RaycastHit2D hit = Physics2D.Raycast(clickedPos, clickedPos, 0.0f);
-                if(hit)Debug.Log("click!");
                 if( hit && hit.collider.gameObject.layer == LayerMask.NameToLayer("Photo") )
                 {
                     hit.collider.SendMessage("Die", SendMessageOptions.DontRequireReceiver);

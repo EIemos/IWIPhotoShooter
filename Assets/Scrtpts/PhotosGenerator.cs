@@ -31,7 +31,6 @@ public class PhotosOfflineGenerator
     
     public void LoadTextures()
     {
-        //TODO load images
         badPhoto  = new Texture2D(width, height);
         goodPhoto = new Texture2D(width, height);
         badPhoto.LoadImage(  File.ReadAllBytes( Application.dataPath + "/Placeholders/negative.png" ) );
