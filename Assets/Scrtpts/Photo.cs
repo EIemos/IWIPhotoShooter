@@ -60,6 +60,7 @@ public class Photo : MonoBehaviour {
     {
         photoDescriptor = pd;
         spriteRenderer.sprite = pd.sprite;
-        m_collider.size = new Vector2(pd.sprite.rect.size.x, pd.sprite.rect.size.y);
+        m_collider.size = spriteRenderer.sprite.bounds.size;
+        m_collider.offset = new Vector2(0, 0);
     }
 }
