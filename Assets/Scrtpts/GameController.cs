@@ -6,16 +6,18 @@ public class GameController : MonoBehaviour {
 
     public float spawnDelay;
     public GameObject photo;
-    public PhotosFetcher photosFether;
     private float nextSpawnTime;
     private bool isGameOver;
+    private PhotosOfflineGenerator generator;
 
-	// Use this for initialization
-	void Start () {
+    // Use this for initialization
+    void Start () {
         spawnDelay = 3.0f;
         nextSpawnTime = 0.0f;
         isGameOver = false;
-	}
+        generator = new PhotosOfflineGenerator();
+        generator.LoadTextures();
+    }
 	
 	// Update is called once per frame
 	void Update () {
@@ -42,7 +44,6 @@ public class GameController : MonoBehaviour {
     void SpawnPhoto()
     {
         GameObject newPhoto = Instantiate(photo, new Vector3( Random.Range(-9.9f, 9.9f), 5.4f, 0.0f), Quaternion.identity) as GameObject;
-        PhotoDescriptor photos = photosFether.GetPhoto();
-        newPhoto.SendMessage( "SetPhotoDescriptor", photos, SendMessageOptions.DontRequireReceiver);
+        newPhoto.SendMessage( "SetPhotoDescriptor", generator.GeneratePhoto(), SendMessageOptions.DontRequireReceiver);
     }
 }
