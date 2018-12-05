@@ -17,7 +17,7 @@ public class Photo : MonoBehaviour {
     // Use this for initialization
     void Start ()
     {
-        fadeRate = 1.0f;
+        fadeRate = 1.2f;
         xSpeed = 0.1f;
         ySpeed = -1.0f;
         xSpeedRandomRange = xSpeed/3.0f;
