@@ -33,8 +33,8 @@ public class PhotosOfflineGenerator
     {
         badPhoto  = new Texture2D(width, height);
         goodPhoto = new Texture2D(width, height);
-        badPhoto.LoadImage(  File.ReadAllBytes( Application.dataPath + "/Placeholders/negative.png" ) );
-        goodPhoto.LoadImage( File.ReadAllBytes( Application.dataPath + "/Placeholders/positive.png" ) );
+        badPhoto.LoadImage(  File.ReadAllBytes( Application.dataPath + "/Placeholders/c1.jpg" ) );
+        goodPhoto.LoadImage( File.ReadAllBytes( Application.dataPath + "/Placeholders/d1.jpg" ) );
         rect = new Rect(0, 0, width, height);
         pivot = new Vector2(0.5f, 0.5f);
     }
