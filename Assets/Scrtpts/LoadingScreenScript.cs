@@ -12,7 +12,7 @@ public class LoadingScreenScript : MonoBehaviour {
 	
     IEnumerator MimicDownloadingAssets()
     {
-        yield return new WaitForSeconds( 5 );
+        yield return new WaitForSeconds( 1 );
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
     }
 

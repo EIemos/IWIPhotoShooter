@@ -28,10 +28,10 @@ public class MainMenuScript : MonoBehaviour {
         yield return new WaitForSeconds( 2 );
 
         GetComponentInChildren<Button>().interactable = true;
-        if( credentialsValid )
+        //if( credentialsValid )
             SceneManager.LoadScene( SceneManager.GetActiveScene().buildIndex + 1 );
-        else
-            GameObject.Find( "Login_failed_text" ).GetComponent<TMP_Text>().enabled = true;
+        //else
+        //    GameObject.Find( "Login_failed_text" ).GetComponent<TMP_Text>().enabled = true;
     }
 
     bool verifyCredentials(string login, string password)
