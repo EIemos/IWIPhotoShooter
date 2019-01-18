@@ -6,9 +6,9 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class Game : MonoBehaviour {
-    private static IGameInput input = null;
+    private static GameInput input = null;
 
-    public static void GoToScene(IGameInput input) {
+    public static void GoToScene(GameInput input) {
         Game.input = input;
         SceneManager.LoadScene("Game");
     }
@@ -20,7 +20,7 @@ public class Game : MonoBehaviour {
     public bool canSpawn = true;
     public bool quit = false;
 
-    private IPhotoInfo nextPhoto() {
+    private PhotoInfo nextPhoto() {
         return input.Photos[Random.Range(0, input.Photos.Count)];
     }
 
@@ -67,9 +67,7 @@ public class Game : MonoBehaviour {
     private GameOutput output;
 
     private void Start() {
-        if (input == null) {
-            Loading.GoToScene();
-        }
+        if (input == null) { Loading.GoToScene(); }
 
         output = new GameOutput(input);
         trash.GameOutput = output;

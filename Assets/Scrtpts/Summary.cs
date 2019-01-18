@@ -6,9 +6,9 @@ using UnityEngine.UI;
 
 public class Summary : MonoBehaviour {
     private static GameOutput output;
-    private static IGameInput input;
+    private static GameInput input;
 
-    public static void GoToScene(GameOutput output, IGameInput input) {
+    public static void GoToScene(GameOutput output, GameInput input) {
         Summary.output = output;
         Summary.input = input;
         SceneManager.LoadScene("Summary");
@@ -24,7 +24,7 @@ public class Summary : MonoBehaviour {
         input = null;
     }
 
-    private IEnumerator HandleGameResults(GameOutput output, IGameInput input) {
+    private IEnumerator HandleGameResults(GameOutput output, GameInput input) {
         Config.Connection.HandleOutput(output, input);
         exitButton.interactable = true;
         yield return null;

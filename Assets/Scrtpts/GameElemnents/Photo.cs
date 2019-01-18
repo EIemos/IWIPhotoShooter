@@ -10,7 +10,7 @@ public class Photo : MonoBehaviour {
     public Image image;
     public Text Text;
     public Image seleciton;
-    public IPhotoInfo PhotoInfo;
+    public PhotoInfo PhotoInfo;
 
     private void Update() {
         if (!selected) { return; }
@@ -44,7 +44,7 @@ public class Photo : MonoBehaviour {
         offset = transform.position - Camera.main.ScreenToWorldPoint(Input.mousePosition);
     }
 
-    public static Photo Spawn(IPhotoInfo PhotoInfo, Vector2 Position, Transform Parent) {
+    public static Photo Spawn(PhotoInfo PhotoInfo, Vector2 Position, Transform Parent) {
         var photo = Instantiate(Resources.Load<GameObject>("File"), Parent).GetComponent<Photo>();
         photo.PhotoInfo = PhotoInfo;
         photo.transform.position = Position;
