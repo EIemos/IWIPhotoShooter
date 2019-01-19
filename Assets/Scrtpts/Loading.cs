@@ -8,6 +8,10 @@ public class Loading : MonoBehaviour {
     }
 
     private void Start() {
+       
+    }
+
+    private void Awake() {
         StartCoroutine(LoadAsssets());
     }
 

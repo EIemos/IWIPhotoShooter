@@ -40,7 +40,7 @@ public interface IConnection {
 }
 
 public static class Config {
-    public static readonly IConnection Connection = new OfflineConnection();
+    public static readonly IConnection Connection = new TestOnlineConnection();
 }
 
 public class OfflineConnection : IConnection {
@@ -85,17 +85,51 @@ public class OfflineConnection : IConnection {
 }
 
 
+
 public class TestOnlineConnection : IConnection {
 
+    public static Texture2D Resize(Texture2D source, int newWidth, int newHeight) {
+        source.filterMode = FilterMode.Point;
+        RenderTexture rt = RenderTexture.GetTemporary(newWidth, newHeight);
+        rt.filterMode = FilterMode.Point;
+        RenderTexture.active = rt;
+        Graphics.Blit(source, rt);
+        var nTex = new Texture2D(newWidth, newHeight);
+        nTex.ReadPixels(new Rect(0, 0, newWidth, newWidth), 0, 0);
+        nTex.Apply();
+        RenderTexture.active = null;
+        return nTex;
+
+    }
+
     public GameInput GetGameInput() {
+
         var class1 = new PhotoClass { ClassName = "Cats" };
-        var photos1 = new[] { "c1", "c2", "c3" }.Select(name => new PhotoInfo { Texture = Resources.Load<Texture2D>(name), ClassName = class1.ClassName });
 
         var class2 = new PhotoClass { ClassName = "Dogs" };
-        var photos2 = new[] { "d1", "d2", "d3" }.Select(name => new PhotoInfo { Texture = Resources.Load<Texture2D>(name), ClassName = class2.ClassName });
 
+
+        var dog = "http://cdn.akc.org/content/article-body-image/housetrain_adult_dog_hero.jpg";
+
+        var photos = new List<PhotoInfo>();
+
+        using (WWW www = new WWW(dog)) {
+
+            while (!www.isDone) { }
+
+            var texture = www.texture;
+            var maxSize = 200f;
+            var max = Mathf.Min(texture.width, texture.height);
+            var k = maxSize / max;
+            var newWidth = (int)(texture.width * k);
+            var newHeight = (int)(texture.height * k);
+
+            photos.Add(new PhotoInfo { Texture = Resize(texture, newWidth, newHeight), ClassName = class2.ClassName });
+
+        }
+     
         return new GameInput {
-            Photos = photos1.Concat(photos2).ToList(),
+            Photos = photos,
             Class1 = class1,
             Class2 = class2
         };
