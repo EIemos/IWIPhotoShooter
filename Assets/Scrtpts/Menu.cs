@@ -14,9 +14,53 @@ public class Menu : MonoBehaviour {
     public TMP_InputField loginInput;
     public TMP_InputField passwordInput;
     public TMP_Text loginFailedText;
+    public GameObject loginMenu, playerMenu;
+    public TMP_Text playerName;
+    public Image avatar;
 
     public void LogInButtonOnClick() {
         StartCoroutine(LogIn());
+    }
+
+    public void PlayButtonOnClick() {
+        Loading.GoToScene();
+    }
+
+    public void LogoutButtonOnClick() {
+        Connection.loginData = null;
+        setLoginMenu();
+    }
+
+    public void QuitButtonOnClick() {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
+        Application.Quit();
+    }
+
+    public void setPlayerMenu() {
+        loginMenu.SetActive(false);
+        playerMenu.SetActive(true);
+        playerName.text = Connection.loginData.login;
+        if (Connection.loginData.texture != null) {
+            var t = Connection.loginData.texture;
+            avatar.sprite = Sprite.Create(t, new Rect(0, 0, t.width, t.height), new Vector2(0.5f, 0.5f));
+        } else {
+            StartCoroutine(Connection.GetPhoto(t => {
+                Connection.loginData.texture = t;
+                avatar.sprite = Sprite.Create(t, new Rect(0, 0, t.width, t.height), new Vector2(0.5f, 0.5f));
+            },
+                Connection.Server + "/" + Connection.loginData.avatar.Replace("\\", string.Empty)));
+        }
+
+
+    }
+
+    public void setLoginMenu() {
+        loginInput.text = "";
+        passwordInput.text = "";
+        loginMenu.SetActive(true);
+        playerMenu.SetActive(false);
     }
 
     private IEnumerator LogIn() {
@@ -34,17 +78,21 @@ public class Menu : MonoBehaviour {
         yield return Connection.LogIn(login, password);
         interactable.ForEach(s => s.interactable = true);
 
-        if (!Connection.IsLogged) {
+        if (Connection.loginData == null) {
             loginFailedText.gameObject.SetActive(true);
             yield return null;
         } else {
             loginFailedText.gameObject.SetActive(false);
+            setPlayerMenu();
         }
     }
 
-    private void Update() {
-        if (Connection.IsLogged) {
-            Loading.GoToScene();
+    private void Start() {
+        if (Connection.loginData != null) {
+            setPlayerMenu();
+        } else {
+            setLoginMenu();
         }
     }
+
 }

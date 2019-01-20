@@ -16,7 +16,7 @@ public class Game : MonoBehaviour {
     public Trash trash;
     public Transform class1Pos, class2Pos;
     public List<Transform> spawnPoints;
-    public Text score, time;
+    public Text score, playerName;
     public bool canSpawn = true;
     public bool quit = false;
 
@@ -67,11 +67,12 @@ public class Game : MonoBehaviour {
 
     private void Start() {
         if (input == null) { Loading.GoToScene(); }
-
+        playerName.text = Connection.loginData.login;
         output = new GameOutput(input);
         trash.GameOutput = output;
-        Directory.Spawn(input.Class1, output, class1Pos.position, gameObject.transform);
-        Directory.Spawn(input.Class2, output, class2Pos.position, gameObject.transform);
+
+        Directory.Spawn(input.MainClass, output, class1Pos.position, gameObject.transform);
+        Directory.Spawn(input.OtherClass, output, class2Pos.position, gameObject.transform);
     }
 
     private void Update() {
