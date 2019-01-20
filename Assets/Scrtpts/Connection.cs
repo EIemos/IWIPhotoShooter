@@ -101,6 +101,17 @@ public static class Config {
 
 
 public class TestOnlineConnection {
+    private static readonly string VERSION = "3.0";
+    private string deviceId;
+
+    private string getDeviceId(string username)
+    {
+        if (deviceId == null)
+        {
+            this.deviceId = RegisterDevice(username);
+        }
+        return deviceId;
+    }
 
     [Serializable]
     public class JsonResponse {
@@ -242,8 +253,79 @@ public class TestOnlineConnection {
     }
 
     public bool LogIn(string username, string password) {
+        WWWForm form = new WWWForm();
+        form.AddField("login", username);
+        form.AddField("password", password);
+        form.AddField("device_id", getDeviceId(username));
+
+        using (UnityWebRequest www = UnityWebRequest.Post("https://kask.eti.pg.gda.pl/cenhive/api.php?o=login", form))
+        {
+            www.SendWebRequest();
+
+            if (www.isNetworkError)
+            {
+                Debug.Log(www.error);
+                return false;
+            }
+            else
+            {
+                Debug.Log("POST successful!");
+                StringBuilder sb = new StringBuilder();
+                foreach (KeyValuePair<string, string> dict in www.GetResponseHeaders())
+                {
+                    sb.Append(dict.Key).Append(": \t[").Append(dict.Value).Append("]\n");
+                }
+
+                // Print Headers
+                Debug.Log(sb.ToString());
+
+                // Print Body
+                Debug.Log(www.downloadHandler.text);
+                var response = JsonUtility.FromJson<JsonResponse>(www.downloadHandler.text);
+                return true;
+                //callback(response);
+
+            }
+
+        }
+        
         Debug.Log(string.Format("Login {0} Password {1}", username, password));
-        return true;
+    }
+    public string RegisterDevice(string username)
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("name", username);
+        form.AddField("version", VERSION);
+
+        using (UnityWebRequest www = UnityWebRequest.Post("https://kask.eti.pg.gda.pl/cenhive/api.php?o=register", form))
+        {
+            www.SendWebRequest();
+
+            if (www.isNetworkError)
+            {
+                Debug.Log(www.error);
+                throw new Exception("Cannot register device");
+            }
+            else
+            {
+                Debug.Log("POST successful!");
+                StringBuilder sb = new StringBuilder();
+                foreach (KeyValuePair<string, string> dict in www.GetResponseHeaders())
+                {
+                    sb.Append(dict.Key).Append(": \t[").Append(dict.Value).Append("]\n");
+                }
+
+                // Print Headers
+                Debug.Log(sb.ToString());
+
+                // Print Body
+                Debug.Log(www.downloadHandler.text);
+                return www.downloadHandler.text;
+                //callback(response);
+
+            }
+
+        }
     }
 }
 
