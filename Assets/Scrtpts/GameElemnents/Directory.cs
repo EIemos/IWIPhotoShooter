@@ -12,17 +12,16 @@ public class Directory : MonoBehaviour {
         
         var photo = collision.gameObject.GetComponent<Photo>();
         GameOutput.Points += PhotoClass == photo.PhotoInfo.PhotoClass ? 15 : -20;
-        GameOutput.Assign(PhotoClass, photo.PhotoInfo);
+        if (photo.seleciton.enabled) {
+            GameOutput.Assign(PhotoClass, photo.PhotoInfo);
+        }
         Destroy(photo.gameObject);
     }
 
-    public static Directory Spawn(PhotoClass PhotoClass, GameOutput GameOutput, Vector2 Position, Transform Parent) {
-        var directory = Instantiate(Resources.Load<GameObject>("Folder"), Parent).GetComponent<Directory>();
+    public static Directory Spawn(Directory directory, PhotoClass PhotoClass, GameOutput GameOutput, Vector2 Position, Transform Parent) {
         directory.PhotoClass = PhotoClass;
         directory.GameOutput = GameOutput;
-        directory.transform.position = Position;
         directory.Text.text = PhotoClass.ClassName;
-        directory.gameObject.transform.SetParent(Parent);
         return directory;
     }
 
