@@ -16,7 +16,8 @@ public class Loading : MonoBehaviour {
     }
 
     private IEnumerator LoadAsssets() {
-        var input = Config.Connection.GetGameInput();
+        GameInput input = null;
+        yield return Config.Connection.GetEnumeratorDataInput(i => input = i);
         if(input == null) {
             Debug.Log("Loading Error");
             Menu.GoToScene();

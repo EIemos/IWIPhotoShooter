@@ -11,7 +11,7 @@ public class Directory : MonoBehaviour {
         if (!collision.gameObject.CompareTag("File")) { return; }
         
         var photo = collision.gameObject.GetComponent<Photo>();
-        GameOutput.Points += PhotoClass.ClassName == photo.PhotoInfo.ClassName ? 15 : -20;
+        GameOutput.Points += PhotoClass == photo.PhotoInfo.PhotoClass ? 15 : -20;
         GameOutput.Assign(PhotoClass, photo.PhotoInfo);
         Destroy(photo.gameObject);
     }
