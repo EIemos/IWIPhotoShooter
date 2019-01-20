@@ -7,11 +7,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 public class PhotoClass {
-
-    public PhotoClass(string ClassName) {
-        this.ClassName = ClassName;
-    }
-
+    public PhotoClass(string ClassName) { this.ClassName = ClassName; }
     public string ClassName { get; set; }
 }
 
@@ -49,19 +45,17 @@ public class GameOutput {
     }
 }
 
-public static class Config {
-    public static bool isLogged = false;
-    public static int numberOfPictures = 25;
-    public static string deviceID = 6.ToString();
-    public static string collection = "faces";
-    public static string serverUrl = "https://kask.eti.pg.gda.pl/cenhive";
-    public static string loginUrl = serverUrl + "/api.php?o=login";
-    public static string getDataUrl = serverUrl + "/api.php?o=getmanydata";
-    public static string sendAnwsersUrl = serverUrl + "/api.php?o=sendmanyanswers";
-    public static readonly TestOnlineConnection Connection = new TestOnlineConnection();
-}
-
-public class TestOnlineConnection {
+public static class Connection {
+    public static bool IsLogged = false;
+    public static string DeviceId = null;
+    public static readonly string Server = "https://kask.eti.pg.gda.pl/cenhive";
+    public static readonly string LoginURL = Server + "/api.php?o=login";
+    public static readonly string GetManyDataURL = Server + "/api.php?o=getmanydata";
+    public static readonly string SendManyAnswersURL = Server + "/api.php?o=sendmanyanswers";
+    public static readonly string RegisterURL = Server + "/api.php?o=register";
+    public static readonly string Version = "3.0";
+    public static readonly int NumberOfPictures = 25;
+    public static readonly string Collection = "faces";
 
     [Serializable]
     public class JsonResponse {
@@ -77,9 +71,9 @@ public class TestOnlineConnection {
             public Question[] media;
         }
 
-         public Question question;
-         public int[] correct_phrases;
-         public Phrases[] phrases;
+        public Question question;
+        public int[] correct_phrases;
+        public Phrases[] phrases;
 
         public List<string> getMainClassPhotoUrls(PhotoClass photoClass) {
             var correctID = correct_phrases;
@@ -95,68 +89,46 @@ public class TestOnlineConnection {
 
     }
 
-    IEnumerator GetDataFromServer(Action<JsonResponse> callback, string collection, int number) {
+    private static IEnumerator GetDataFromServer(Action<JsonResponse> callback) {
         WWWForm form = new WWWForm();
-        form.AddField("collection", Config.collection);
-        form.AddField("device_id", Config.deviceID);
-        form.AddField("phrases_count", Config.numberOfPictures);
+        form.AddField("collection", Collection);
+        form.AddField("device_id", DeviceId);
+        form.AddField("phrases_count", NumberOfPictures);
 
-        using (UnityWebRequest www = UnityWebRequest.Post(Config.getDataUrl, form)) {
+        using (UnityWebRequest www = UnityWebRequest.Post(GetManyDataURL, form)) {
             yield return www.SendWebRequest();
-
             if (www.isNetworkError) {
                 Debug.Log(www.error);
             } else {
-                Debug.Log("POST successful!");
-                StringBuilder sb = new StringBuilder();
-                foreach (KeyValuePair<string, string> dict in www.GetResponseHeaders()) {
-                    sb.Append(dict.Key).Append(": \t[").Append(dict.Value).Append("]\n");
-                }
-
-                // Print Headers
-                Debug.Log(sb.ToString());
-
-                // Print Body
                 Debug.Log(www.downloadHandler.text);
                 var response = JsonUtility.FromJson<JsonResponse>(www.downloadHandler.text);
                 callback(response);
-                
             }
         }
     }
 
-    IEnumerator SendCorrectPictures(IEnumerable<int> selected, IEnumerable<int> notSelected) {
+    private static IEnumerator SendCorrectPictures(IEnumerable<int> selected, IEnumerable<int> notSelected) {
         WWWForm form = new WWWForm();
-        form.AddField("collection", Config.collection);
-        form.AddField("device_id", 1);
+        form.AddField("collection", Collection);
+        form.AddField("device_id", DeviceId);
         form.AddField("answer_time", 15523);
-        foreach (var number in selected)
+        foreach (var number in selected) {
             form.AddField("selected_phrases[]", number);
-        foreach (var number in notSelected)
+        }
+
+        foreach (var number in notSelected) {
             form.AddField("not_selected_phrases[]", number);
+        }
 
-
-        using (UnityWebRequest www = UnityWebRequest.Post(Config.sendAnwsersUrl, form)) {
+        using (UnityWebRequest www = UnityWebRequest.Post(SendManyAnswersURL, form)) {
             yield return www.SendWebRequest();
-
             if (www.isNetworkError) {
                 Debug.Log(www.error);
             } else {
-                Debug.Log("POST successful!");
-                StringBuilder sb = new StringBuilder();
-                foreach (KeyValuePair<string, string> dict in www.GetResponseHeaders()) {
-                    sb.Append(dict.Key).Append(": \t[").Append(dict.Value).Append("]\n");
-                }
-
-                // Print Headers
-                Debug.Log(sb.ToString());
-
-                // Print Body
                 Debug.Log(www.downloadHandler.text);
             }
         }
     }
-
 
     public static Texture2D Resize(Texture2D source, int newWidth, int newHeight) {
         source.filterMode = FilterMode.Point;
@@ -172,7 +144,7 @@ public class TestOnlineConnection {
 
     }
 
-    private IEnumerator GetPhoto(System.Action<Texture2D> callback, string url) {
+    private static IEnumerator GetPhoto(System.Action<Texture2D> callback, string url) {
         using (WWW www = new WWW(url)) {
             yield return www;
             var texture = www.texture;
@@ -187,21 +159,20 @@ public class TestOnlineConnection {
         }
     }
 
-    public IEnumerator GetEnumeratorDataInput(System.Action<GameInput> callback) {
-
+    public static IEnumerator GetEnumeratorDataInput(System.Action<GameInput> callback) {
         JsonResponse response = null;
-        yield return GetDataFromServer(r => response = r, "faces", 25);
+        yield return GetDataFromServer(r => response = r);
 
         var faces = new PhotoClass("Faces");
         var facePhotos = new List<PhotoInfo>();
         foreach (var link in response.getMainClassPhotoUrls(faces)) {
-            yield return GetPhoto(texture => facePhotos.Add(new PhotoInfo(texture, faces,1)), link);
+            yield return GetPhoto(texture => facePhotos.Add(new PhotoInfo(texture, faces, 1)), link);
         }
 
         var other = new PhotoClass("Other");
         var otherPhotos = new List<PhotoInfo>();
         foreach (var link in response.getOtherClassPhotoUrls()) {
-            yield return GetPhoto(texture => otherPhotos.Add(new PhotoInfo(texture, other,2)), link);
+            yield return GetPhoto(texture => otherPhotos.Add(new PhotoInfo(texture, other, 2)), link);
         }
 
         var photos = facePhotos.Concat(otherPhotos).ToList();
@@ -215,7 +186,7 @@ public class TestOnlineConnection {
         callback(input);
     }
 
-    public IEnumerator HandleOutput(GameOutput output, GameInput input) {
+    public static IEnumerator HandleOutput(GameOutput output, GameInput input) {
 
         if (output.Points > 100) {
             Debug.Log("Archivement \"Get 100 Points.\" Unlocked!");
@@ -236,37 +207,36 @@ public class TestOnlineConnection {
         yield return null;
     }
 
-    public IEnumerator LogIn(Action<bool> callbackResult, string login, string password) {
+    public static IEnumerator LogIn(string login, string password) {
         WWWForm form = new WWWForm();
         form.AddField("login", login);
         form.AddField("password", password);
-        form.AddField("device_id", Config.deviceID);
-        Debug.Log("POST sucasdasdadscessful!");
-        callbackResult(true);
+        form.AddField("device_id", DeviceId);
 
-        using (UnityWebRequest www = UnityWebRequest.Post(Config.loginUrl, form)) {
+        using (UnityWebRequest www = UnityWebRequest.Post(LoginURL, form)) {
             yield return www.SendWebRequest();
-
-            if (www.isNetworkError) {
-                Debug.Log(www.error);
-                callbackResult(false);
-            } else {
-                Debug.Log("POST successful!");
-                StringBuilder sb = new StringBuilder();
-                foreach (KeyValuePair<string, string> dict in www.GetResponseHeaders()) {
-                    sb.Append(dict.Key).Append(": \t[").Append(dict.Value).Append("]\n");
-                }
-
-                // Print Headers
-                Debug.Log(sb.ToString());
-
-                // Print Body
+            if (!www.isHttpError && !www.isNetworkError) {
                 Debug.Log(www.downloadHandler.text);
-                callbackResult(!www.isHttpError);
+                IsLogged = true;
+            } else {
+                Debug.Log(www.error);
             }
         }
+    }
 
-        yield return 0;
+    public static IEnumerator RegisterDevice(string username) {
+        WWWForm form = new WWWForm();
+        form.AddField("name", username);
+        form.AddField("version", Version);
+        using (UnityWebRequest www = UnityWebRequest.Post(RegisterURL, form)) {
+            yield return www.SendWebRequest();
+            if (!www.isHttpError && !www.isNetworkError) {
+                Debug.Log(www.downloadHandler.text);
+                DeviceId = www.downloadHandler.text;
+            } else {
+                Debug.Log(www.error);
+            }
+        }
     }
 }
 

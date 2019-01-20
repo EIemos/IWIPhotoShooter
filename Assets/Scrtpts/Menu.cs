@@ -26,18 +26,24 @@ public class Menu : MonoBehaviour {
         var interactable = new List<Selectable>() { passwordInput, loginInput, loginButton };
 
         interactable.ForEach(s => s.interactable = false);
-        yield return Config.Connection.LogIn(l => Config.isLogged = l, loginInput.text, passwordInput.text);
-        interactable.ForEach(s => s.interactable = true);
 
-        if (!Config.isLogged) {
-            loginFailedText.enabled = true;
-            yield return null;
+        if (Connection.DeviceId == null) {
+            yield return Connection.RegisterDevice(login);
         }
 
+        yield return Connection.LogIn(login, password);
+        interactable.ForEach(s => s.interactable = true);
+
+        if (!Connection.IsLogged) {
+            loginFailedText.gameObject.SetActive(true);
+            yield return null;
+        } else {
+            loginFailedText.gameObject.SetActive(false);
+        }
     }
 
     private void Update() {
-        if (Config.isLogged) {
+        if (Connection.IsLogged) {
             Loading.GoToScene();
         }
     }

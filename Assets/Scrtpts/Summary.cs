@@ -25,7 +25,7 @@ public class Summary : MonoBehaviour {
     }
 
     private IEnumerator HandleGameResults(GameOutput output, GameInput input) {
-        yield return Config.Connection.HandleOutput(output, input);
+        yield return Connection.HandleOutput(output, input);
         exitButton.interactable = true;
         yield return null;
     }
