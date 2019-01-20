@@ -25,7 +25,6 @@ public class Game : MonoBehaviour {
     }
 
     private Vector2 nextSpawnPoint() {
-        var objects = GameObject.FindGameObjectsWithTag("File");
         var found = spawnPoints.FindAll(point => {
             return Physics2D.OverlapCircleAll(point.position, 50).Count() == 0;
         });

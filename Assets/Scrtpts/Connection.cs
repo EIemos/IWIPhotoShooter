@@ -16,11 +16,13 @@ public class PhotoClass {
 }
 
 public class PhotoInfo {
-    public PhotoInfo(Texture2D texture, PhotoClass photoClass) {
+    public PhotoInfo(Texture2D texture, PhotoClass photoClass, int id) {
         Texture = texture;
+        ID = id;
         PhotoClass = photoClass;
     }
 
+    public int ID { get; set; }
     public Texture2D Texture { get; set; }
     public PhotoClass PhotoClass { get; set; }
 }
@@ -47,58 +49,17 @@ public class GameOutput {
     }
 }
 
-public interface IConnection {
-    bool LogIn(string username, string password);
-    GameInput GetGameInput();
-    void HandleOutput(GameOutput output, GameInput input);
-}
-
 public static class Config {
+    public static bool isLogged = false;
+    public static int numberOfPictures = 25;
+    public static string deviceID = 6.ToString();
+    public static string collection = "faces";
+    public static string serverUrl = "https://kask.eti.pg.gda.pl/cenhive";
+    public static string loginUrl = serverUrl + "/api.php?o=login";
+    public static string getDataUrl = serverUrl + "/api.php?o=getmanydata";
+    public static string sendAnwsersUrl = serverUrl + "/api.php?o=sendmanyanswers";
     public static readonly TestOnlineConnection Connection = new TestOnlineConnection();
 }
-
-//public class OfflineConnection  {
-
-//    public GameInput GetGameInput() {
-//        var class1 = new PhotoClass { ClassName = "Cats" };
-//        var photos1 = new[] { "c1", "c2", "c3" }.Select(name => new PhotoInfo { Texture = Resources.Load<Texture2D>(name), PhotoClass = class1.ClassName });
-
-//        var class2 = new PhotoClass { ClassName = "Dogs" };
-//        var photos2 = new[] { "d1", "d2", "d3" }.Select(name => new PhotoInfo { Texture = Resources.Load<Texture2D>(name), PhotoClass = class2.ClassName });
-
-//        return new GameInput {
-//            Photos = photos1.Concat(photos2).ToList(),
-//            Class1 = class1,
-//            Class2 = class2
-//        };
-//    }
-
-//    public void HandleOutput(GameOutput output, GameInput input) {
-
-//        if (output.Points > 100) {
-//            Debug.Log("Archivement \"Get 100 Points.\" Unlocked!");
-//        }
-
-//        var class1 = input.Class1;
-//        var class2 = input.Class2;
-//        var selected1 = output.Class1Selection.Distinct();
-//        var selected2 = output.Class2Selection.Distinct();
-
-//        var toSend1 = selected1.Except(selected2);
-//        var toSend2 = selected2.Except(selected1);
-
-//        Debug.Log(string.Format("Class {0} classified {1} photos", class1.ClassName, toSend1.Count()));
-//        Debug.Log(string.Format("Class {0} classified {1} photos", class2.ClassName, toSend2.Count()));
-//        return;
-//    }
-
-//    public bool LogIn(string username, string password) {
-//        Debug.Log(string.Format("Login {0} Password {1}", username, password));
-//        return true;
-//    }
-//}
-
-
 
 public class TestOnlineConnection {
 
@@ -120,7 +81,7 @@ public class TestOnlineConnection {
          public int[] correct_phrases;
          public Phrases[] phrases;
 
-        public List<string> getMainClassPhotoUrls() {
+        public List<string> getMainClassPhotoUrls(PhotoClass photoClass) {
             var correctID = correct_phrases;
             var links = phrases.Where(p => correctID.Contains(p.id)).Select(p => p.media[0].data.Replace("\\", string.Empty)).ToList();
             return links;
@@ -136,10 +97,11 @@ public class TestOnlineConnection {
 
     IEnumerator GetDataFromServer(Action<JsonResponse> callback, string collection, int number) {
         WWWForm form = new WWWForm();
-        form.AddField("collection", collection);
-        form.AddField("phrases_count", number.ToString());
+        form.AddField("collection", Config.collection);
+        form.AddField("device_id", Config.deviceID);
+        form.AddField("phrases_count", Config.numberOfPictures);
 
-        using (UnityWebRequest www = UnityWebRequest.Post("https://kask.eti.pg.gda.pl/cenhive/api.php?o=getmanydata", form)) {
+        using (UnityWebRequest www = UnityWebRequest.Post(Config.getDataUrl, form)) {
             yield return www.SendWebRequest();
 
             if (www.isNetworkError) {
@@ -163,6 +125,37 @@ public class TestOnlineConnection {
         }
     }
 
+    IEnumerator SendCorrectPictures(IEnumerable<int> selected, IEnumerable<int> notSelected) {
+        WWWForm form = new WWWForm();
+        form.AddField("collection", Config.collection);
+        form.AddField("device_id", 1);
+        form.AddField("answer_time", 15523);
+        foreach (var number in selected)
+            form.AddField("selected_phrases[]", number);
+        foreach (var number in notSelected)
+            form.AddField("not_selected_phrases[]", number);
+
+
+        using (UnityWebRequest www = UnityWebRequest.Post(Config.sendAnwsersUrl, form)) {
+            yield return www.SendWebRequest();
+
+            if (www.isNetworkError) {
+                Debug.Log(www.error);
+            } else {
+                Debug.Log("POST successful!");
+                StringBuilder sb = new StringBuilder();
+                foreach (KeyValuePair<string, string> dict in www.GetResponseHeaders()) {
+                    sb.Append(dict.Key).Append(": \t[").Append(dict.Value).Append("]\n");
+                }
+
+                // Print Headers
+                Debug.Log(sb.ToString());
+
+                // Print Body
+                Debug.Log(www.downloadHandler.text);
+            }
+        }
+    }
 
 
     public static Texture2D Resize(Texture2D source, int newWidth, int newHeight) {
@@ -201,14 +194,14 @@ public class TestOnlineConnection {
 
         var faces = new PhotoClass("Faces");
         var facePhotos = new List<PhotoInfo>();
-        foreach (var link in response.getMainClassPhotoUrls()) {
-            yield return GetPhoto(texture => facePhotos.Add(new PhotoInfo(texture, faces)), link);
+        foreach (var link in response.getMainClassPhotoUrls(faces)) {
+            yield return GetPhoto(texture => facePhotos.Add(new PhotoInfo(texture, faces,1)), link);
         }
 
         var other = new PhotoClass("Other");
         var otherPhotos = new List<PhotoInfo>();
         foreach (var link in response.getOtherClassPhotoUrls()) {
-            yield return GetPhoto(texture => otherPhotos.Add(new PhotoInfo(texture, other)), link);
+            yield return GetPhoto(texture => otherPhotos.Add(new PhotoInfo(texture, other,2)), link);
         }
 
         var photos = facePhotos.Concat(otherPhotos).ToList();
@@ -236,14 +229,44 @@ public class TestOnlineConnection {
         var toSend1 = selected1.Except(selected2);
         var toSend2 = selected2.Except(selected1);
 
+        yield return SendCorrectPictures(new[] { 209, 237, 218 }, new[] { 222, 234, 220 });
+
         Debug.Log(string.Format("Class {0} classified {1} photos", class1.ClassName, toSend1.Count()));
         Debug.Log(string.Format("Class {0} classified {1} photos", class2.ClassName, toSend2.Count()));
         yield return null;
     }
 
-    public bool LogIn(string username, string password) {
-        Debug.Log(string.Format("Login {0} Password {1}", username, password));
-        return true;
+    public IEnumerator LogIn(Action<bool> callbackResult, string login, string password) {
+        WWWForm form = new WWWForm();
+        form.AddField("login", login);
+        form.AddField("password", password);
+        form.AddField("device_id", Config.deviceID);
+        Debug.Log("POST sucasdasdadscessful!");
+        callbackResult(true);
+
+        using (UnityWebRequest www = UnityWebRequest.Post(Config.loginUrl, form)) {
+            yield return www.SendWebRequest();
+
+            if (www.isNetworkError) {
+                Debug.Log(www.error);
+                callbackResult(false);
+            } else {
+                Debug.Log("POST successful!");
+                StringBuilder sb = new StringBuilder();
+                foreach (KeyValuePair<string, string> dict in www.GetResponseHeaders()) {
+                    sb.Append(dict.Key).Append(": \t[").Append(dict.Value).Append("]\n");
+                }
+
+                // Print Headers
+                Debug.Log(sb.ToString());
+
+                // Print Body
+                Debug.Log(www.downloadHandler.text);
+                callbackResult(!www.isHttpError);
+            }
+        }
+
+        yield return 0;
     }
 }
 
