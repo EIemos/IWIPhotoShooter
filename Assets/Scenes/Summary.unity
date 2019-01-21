@@ -177,7 +177,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 3355443200
-  m_fontColor: {r: 0.4, g: 0.5372549, b: 0.07450981, a: 0.78431374}
+  m_fontColor: {r: 0.735849, g: 0.735849, b: 0.735849, a: 0.78431374}
   m_enableVertexGradient: 0
   m_fontColorGradient:
     topLeft: {r: 1, g: 1, b: 1, a: 1}
@@ -313,8 +313,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 3356723558
-  m_fontColor: {r: 0.4, g: 0.5372549, b: 0.07450981, a: 0.78431374}
+    rgba: 3372220415
+  m_fontColor: {r: 1, g: 1, b: 1, a: 0.78431374}
   m_enableVertexGradient: 0
   m_fontColorGradient:
     topLeft: {r: 1, g: 1, b: 1, a: 1}
@@ -899,7 +899,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.41960785, g: 0.6039216, b: 0.91764706, a: 0}
+  m_BackGroundColor: {r: 0.40784314, g: 0.5372549, b: 0.4862745, a: 0}
   m_projectionMatrixMode: 1
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
